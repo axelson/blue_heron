@@ -50,7 +50,9 @@ defmodule BlueHeronTransportUSB do
   end
 
   defp open_args(%__MODULE__{vid: vid, pid: pid}) when vid > 0 and pid > 0 do
-    ["open_by_vid_pid", to_string(vid), to_string(pid)]
+    args = ["open_by_vid_pid", to_string(vid), to_string(pid)]
+    Logger.debug("opening by args: #{inspect args}")
+    args
   end
 
   defp open_args(_other), do: ["open_first"]

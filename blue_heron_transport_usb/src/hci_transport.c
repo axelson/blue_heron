@@ -156,12 +156,15 @@ int main(int argc, char const *argv[])
     if (argc == 4 && strcmp(argv[1], "open_by_vid_pid") == 0) {
         ac.vid = (uint16_t) strtoul(argv[2], 0, 0);
         ac.pid = (uint16_t) strtoul(argv[3], 0, 0);
+        warn("trying by open_by_vid_pid");
         acceptable_device = accept_by_vid_pid;
     } else if (argc == 4 && strcmp(argv[1], "open_by_bus") == 0) {
         ac.bus_number = (uint8_t) strtoul(argv[2], 0, 0);
         ac.device_number = (uint8_t) strtoul(argv[3], 0, 0);
+        warn("trying by open_by_bus");
         acceptable_device = accept_by_location;
     } else {
+        warn("trying by first");
         acceptable_device = accept_first;
     }
 

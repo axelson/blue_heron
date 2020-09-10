@@ -8,6 +8,7 @@ defmodule BlueHeronTransportUART do
   """
 
   use GenServer
+  require Logger
   alias Circuits.UART
   alias BlueHeronTransportUART.Framing
 
@@ -47,7 +48,15 @@ defmodule BlueHeronTransportUART do
   def init(config) do
     {:ok, pid} = UART.start_link()
     uart_opts = Keyword.merge([active: true, framing: {Framing, []}], config.uart_opts)
-    :ok = UART.open(pid, config.device, uart_opts)
+    Logger.debug("Opening with config #{inspect config}, and uart_opts: #{inspect uart_opts}")
+    # :ok = UART.open(pid, config.device, uart_opts)
+    case UART.open(pid, config.device, uart_opts) do
+      :ok -> nil
+      {:error, :eagain} = err ->
+        Logger.warn("ignoring error: #{inspect err}")
+        nil
+      other -> Logger.warn("actually got: #{inspect other}")
+    end
     {:ok, %{config | uart_pid: pid}}
   end
 

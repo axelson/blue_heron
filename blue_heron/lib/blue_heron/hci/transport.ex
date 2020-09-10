@@ -259,6 +259,26 @@ defmodule BlueHeron.HCI.Transport do
     end
   end
 
+  def ready(:info, {:transport_data, <<0x2, hci::binary>>}, data) do
+    Logger.hci_packet(:HCI_EVENT_PACKET, :in, hci)
+
+    case handle_hci_packet(hci, data) do
+      {:ok, %CommandComplete{} = reply, data} ->
+        actions = maybe_reply(data, reply)
+        {:keep_state, %{data | caller: nil}, actions}
+
+      {:ok, %CommandStatus{} = reply, data} ->
+        actions = maybe_reply(data, reply)
+        {:keep_state, %{data | caller: nil}, actions}
+
+      {:ok, _parsed, data} ->
+        {:keep_state, data, []}
+
+      {:error, _bin, data} ->
+        {:keep_state, data, []}
+    end
+  end
+
   def ready(:info, {:transport_data, <<0x2, acl::binary>>}, data) do
     Logger.hci_packet(:HCI_ACL_DATA_PACKET, :in, acl)
     acl = BlueHeron.ACL.deserialize(acl)
@@ -305,7 +325,7 @@ defmodule BlueHeron.HCI.Transport do
   defp goto_prepare(%{config: %module{} = config} = data, pid) do
     monitor = Process.monitor(pid)
     init_commands = module.init_commands(config)
-    actions = [{:next_event, :internal, :init}, {:state_timeout, 5000, :init_command}]
+    actions = [{:next_event, :internal, :init}, {:state_timeout, 15000, :init_command}]
 
     {:next_state, :prepare,
      %{data | pid: pid, monitor: monitor, init_commands: @default_init_commands ++ init_commands},
